@@ -1,0 +1,51 @@
+plugins {
+    // ModDevGradle : verifie la derniere 2.0.x sur https://github.com/neoforged/ModDevGradle
+    id 'net.neoforged.moddev' version '2.0.107'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+repositories {
+    mavenCentral()
+}
+
+neoForge {
+    version = project.neoforge_version
+
+    // Noms de parametres lisibles dans le decompile (facultatif)
+    parchment {
+        minecraftVersion = project.minecraft_version
+        mappingsVersion = project.parchment_version
+    }
+
+    // Les mixins sont declares dans neoforge.mods.toml ([[mixins]]) ;
+    // ModDevGradle les applique automatiquement dans les runs ci-dessous.
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+
+    mods {
+        bulktrade {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
