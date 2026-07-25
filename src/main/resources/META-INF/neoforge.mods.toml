@@ -12,14 +12,14 @@ credits = "Soutien : https://ko-fi.com/acesoverdeuces777"
 displayURL = "https://github.com/BackupBackupFede/bulk-trade"
 logoFile = "icon.png"
 description = '''
-Vide tout ton stock chez un marchand en un seul shift-clic, sans quitter l'UI de trade.
+Trade your whole stock with a merchant in a single shift-click, without leaving the trade UI.
 
-Le vanilla enchaine deja les echanges au shift-clic, mais s'arrete des que les 2 cases
-de paiement sont vides. Ce mod recharge ces cases depuis ton inventaire -> un clic
-ecoule TOUT ton stock. Tu restes dans le menu, tu choisis ton trade : zero risque de
-mauvais echange. Cote serveur, sans dependance.
+Vanilla already chains trades on shift-click, but stops as soon as the 2 payment slots are
+empty. This mod refills those slots from your inventory -> one click trades your ENTIRE
+stock. You stay in the menu and pick the exact trade: no mis-trades. Server-side, no
+dependencies.
 
-Support : https://ko-fi.com/acesoverdeuces777
+Support: https://ko-fi.com/acesoverdeuces777
 '''
 
 # --- Mixin ---

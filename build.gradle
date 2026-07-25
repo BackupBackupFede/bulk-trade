@@ -1,6 +1,6 @@
 plugins {
     // ModDevGradle : verifie la derniere 2.0.x sur https://github.com/neoforged/ModDevGradle
-    id 'net.neoforged.moddev' version '2.0.107'
+    id 'net.neoforged.moddev' version '2.0.142'
 }
 
 version = project.mod_version
@@ -48,4 +48,14 @@ neoForge {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 21
+}
+
+// Injecte le numero de version dans le manifeste du jar, pour que
+// ${file.jarVersion} dans neoforge.mods.toml affiche "0.1.0" et non "0.0NONE".
+tasks.named('jar') {
+    manifest {
+        attributes([
+            'Implementation-Version': project.version
+        ])
+    }
 }

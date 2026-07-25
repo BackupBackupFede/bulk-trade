@@ -1,65 +1,66 @@
-# Bulk Trade — NeoForge 1.21.1
+# Bulk Villager Trading — NeoForge 1.21.1
 
-Écoule tout ton stock chez un marchand en un seul shift-clic.
+Trade your whole stock with a merchant in a single shift-click.
 
-## Ce que fait (et ne fait pas) le mod
+## What it does (and doesn't)
 
-Important, car c'est contre-intuitif : **le vanilla enchaîne déjà les échanges** quand tu
-shift-cliques le résultat d'un marchand (`AbstractContainerMenu.doClick` rappelle
-`quickMoveStack` en boucle). Mais il ne consomme que ce que tu as **posé à la main dans
-les 2 cases de paiement** (~2 stacks max), et **ne recharge pas** ces cases depuis le
-reste de ton inventaire.
+This one's counter-intuitive, so worth stating: **vanilla already chains trades** when you
+shift-click a merchant's result slot (`AbstractContainerMenu.doClick` re-runs
+`quickMoveStack` in a loop). But it only consumes what you **manually placed in the 2
+payment slots** (~2 stacks), and **never refills** those slots from the rest of your
+inventory.
 
-Le mod ajoute **exactement une chose** : recharger les cases de paiement depuis
-l'inventaire avant chaque échange. Résultat : un shift-clic vide *tout* ton stock
-concerné au lieu de s'arrêter après 2 stacks. C'est un confort (halls de trading,
-conversion de ressources en émeraudes), pas une feature manquante.
+This mod adds **exactly one thing**: it refills the payment slots from your inventory
+before each trade. Result: one shift-click trades your *whole* relevant stock instead of
+stopping after 2 stacks. It's a quality-of-life refinement (trading halls, converting
+resources to emeralds), not a missing feature.
 
-Implémentation : un seul Mixin (`@Inject` au HEAD de `quickMoveStack`, slot résultat)
-qui appelle la méthode vanilla `moveFromInventoryToPaymentSlot`, puis laisse vanilla
-faire le trade. Zéro logique de trade dupliquée. Côté serveur, sans dépendance.
+**It respects villager restock limits** — when a trade runs out of stock, bulk trading
+stops, exactly like vanilla. No stock bypass, no duping.
 
-| Config (serveur) | Défaut | Effet |
+Implementation: a single Mixin (`@Inject` at the HEAD of `quickMoveStack`, result slot)
+that calls the vanilla `moveFromInventoryToPaymentSlot`, then lets vanilla do the trade.
+No duplicated trade logic. Server-side, no dependencies.
+
+| Config (server) | Default | Effect |
 |---|---|---|
-| `enabled` | `true` | Active le refill. `false` = comportement vanilla strict. |
+| `enabled` | `true` | Toggles the refill. `false` = strict vanilla behavior. |
 
 ## Build & run
 
-Prérequis : **JDK 21**. Wrapper Gradle inclus.
+Requires **JDK 21**. Gradle wrapper included.
 
 ```bash
 cd bulk-trade
 ./gradlew build          # -> build/libs/bulktrade-0.1.0.jar
-./gradlew runClient      # client de test avec le mod
+./gradlew runClient      # test client with the mod loaded
 ```
 
-Le 1er `build` décompile Minecraft (long, mis en cache) ; les suivants sont en secondes.
-Sous IntelliJ : « Open » le dossier `bulk-trade`, puis lancer la run config `runClient`.
+The first `build` decompiles Minecraft (slow, then cached); later builds take seconds.
+In IntelliJ: "Open" the `bulk-trade` folder, then run the `runClient` run configuration.
 
-## Test en jeu
+## In-game test
 
-1. Monde Créatif, un villageois avec métier (ou marchand ambulant).
-2. Pose du paiement dans les cases (comme d'habitude), sélectionne un trade.
-3. **Shift-clic** sur le slot résultat.
-4. Attendu : l'échange se répète jusqu'à épuiser ton inventaire du paiement (pas juste
-   les 2 cases). Compare `enabled=false` (s'arrête après ~2 stacks) vs `true`.
+1. Creative world, a villager with a profession (or a wandering trader).
+2. Select a trade and place payment as usual (clicking the trade auto-fills the slots).
+3. **Shift-click** the result slot.
+4. Expected: the trade repeats until your payment stock is drained (not just the 2 slots),
+   and stops when the villager runs out of stock. Compare `enabled=false` (stops after
+   ~2 stacks) vs `true`.
 
-Le paiement restant dans les cases est rendu à l'inventaire à la fermeture de l'UI
-(`MerchantMenu.removed`), donc pas de perte d'items.
+Leftover payment in the slots is returned to your inventory when the menu closes
+(`MerchantMenu.removed`), so no items are lost.
 
-## Cas à vérifier
+## Loader & versions
 
-- Trades à **deux ingrédients** (costA + costB) : les deux cases sont rechargées.
-- **Marchand ambulant** : même `MerchantMenu`, doit marcher pareil.
-- **Composants d'items** (livres enchantés en paiement) : `moveFromInventoryToPaymentSlot`
-  filtre via `ItemCost.test`, donc gère les composants ; à confirmer en jeu.
+- **Loader:** NeoForge
+- **Minecraft:** 1.21.1
+- Runs on any NeoForge `21.1.x` (see `versionRange` in `neoforge.mods.toml`).
 
-## Prochaines étapes
+## Support
 
-1. Vérifier CurseForge qu'aucun équivalent NeoForge actif n'existe (angle mort du scan).
-2. Tester en jeu, ajuster si besoin.
-3. Publier sur Modrinth (NeoForge, 1.21.1), puis envisager un port Fabric.
+☕ If this mod is useful to you: [buy me a coffee on Ko-fi](https://ko-fi.com/acesoverdeuces777)
 
-## Licence
+## License
 
-MIT (placeholder — ajouter un `LICENSE` avant publication).
+[MIT](LICENSE)
