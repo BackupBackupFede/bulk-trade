@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.142'
+}
+
+base {
+    archivesName = "${rootProject.mod_id}-neoforge"
+}
+
+neoForge {
+    version = rootProject.neo_version
+
+    runs {
+        client { client() }
+        server { server() }
+    }
+
+    mods {
+        "${rootProject.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    compileOnly project(':common')
+    // MixinExtras annotation processor is needed to (re)compile the common mixin here.
+    compileOnly "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
+}
+
+// Pull the common module's sources and resources straight into this loader jar.
+tasks.named('compileJava', JavaCompile) {
+    source(project(':common').sourceSets.main.allSource)
+}
+
+tasks.named('processResources', ProcessResources) {
+    from project(':common').sourceSets.main.resources
+}

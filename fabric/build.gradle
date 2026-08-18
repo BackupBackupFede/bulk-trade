@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'net.fabricmc.fabric-loom' version '1.16-SNAPSHOT'
+}
+
+base {
+    archivesName = "${rootProject.mod_id}-fabric"
+}
+
+dependencies {
+    // MC 26.x ships de-obfuscated (real names), so Loom needs no mappings layer here.
+    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+
+    compileOnly project(':common')
+
+    // MixinExtras annotation processor to (re)compile the common mixin here.
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
+}
+
+loom {
+    mixin {
+        useLegacyMixinAp = false
+    }
+    runs {
+        server {
+            server()
+            runDir 'run'
+        }
+        client {
+            client()
+            runDir 'run'
+        }
+    }
+}
+
+// Pull the common module's sources and resources straight into this loader jar.
+tasks.named('compileJava', JavaCompile) {
+    source(project(':common').sourceSets.main.allSource)
+}
+
+tasks.named('processResources', ProcessResources) {
+    from project(':common').sourceSets.main.resources
+}

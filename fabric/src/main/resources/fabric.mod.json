@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "Trade your whole stock with a merchant in one shift-click. Refills the payment slots from your inventory, right in the trade menu. Respects villager restock limits.",
+  "authors": ["${mod_author}"],
+  "contact": {
+    "homepage": "https://github.com/BackupBackupFede/bulk-trade",
+    "issues": "https://github.com/BackupBackupFede/bulk-trade/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["net.emeraude.bulktrade.fabric.BulkTradeFabric"]
+  },
+  "mixins": ["${mod_id}.mixins.json"],
+  "depends": {
+    "minecraft": ">=26.2",
+    "fabricloader": ">=0.16"
+  }
+}

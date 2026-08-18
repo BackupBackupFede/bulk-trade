@@ -1,0 +1,59 @@
+name: Release
+
+# Publishes to Modrinth + CurseForge + GitHub Releases when a version tag is pushed.
+#
+# DORMANT until you set these up (each platform is skipped automatically if its token is absent):
+#   - Repo variables:  MODRINTH_ID, CURSEFORGE_ID   (Settings → Secrets and variables → Actions → Variables)
+#   - Repo secrets:     MODRINTH_TOKEN, CURSEFORGE_TOKEN
+# GITHUB_TOKEN is provided automatically.
+#
+# Release flow: bump mod_version in gradle.properties, then:  git tag v0.1.0 && git push --tags
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build --stacktrace
+
+      # One action, three platforms. Loader + Minecraft version are read from each jar's own
+      # metadata (fabric.mod.json / neoforge.mods.toml), so both loaders publish correctly.
+      - name: Publish
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          files: |
+            fabric/build/libs/!(*-@(sources|javadoc)).jar
+            neoforge/build/libs/!(*-@(sources|javadoc)).jar
+
+          version-type: release

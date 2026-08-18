@@ -15,21 +15,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Le SEUL ajout du mod : recharger les cases de paiement depuis l'inventaire
- * avant chaque echange.
+ * The only thing the mod adds: refill the payment slots from the player's inventory before each
+ * trade.
  *
- * <p>Contexte : le vanilla enchaine deja les trades en un seul shift-clic
- * (AbstractContainerMenu.doClick, cas QUICK_MOVE, rappelle quickMoveStack en
- * boucle). Ce que le vanilla ne fait PAS : reapprovisionner les 2 cases de
- * paiement depuis le reste de l'inventaire. Il s'arrete donc des que les
- * ~2 stacks poses a la main sont consommes.
+ * <p>Vanilla already chains trades on a shift-click (AbstractContainerMenu.doClick re-runs
+ * quickMoveStack in a loop), but only consumes what's in the 2 payment slots and never refills
+ * them. We inject at the HEAD of quickMoveStack (result slot), call the vanilla
+ * {@code moveFromInventoryToPaymentSlot}, and let vanilla do the trade. Its own loop keeps calling
+ * quickMoveStack, so the trade continues until the inventory is drained.
  *
- * <p>On injecte au HEAD de quickMoveStack (slot resultat), on remplit les cases
- * via la methode vanilla {@code moveFromInventoryToPaymentSlot}, et on laisse
- * vanilla faire le trade. Sa propre boucle rappelle quickMoveStack -> notre
- * inject recharge a nouveau -> l'echange se poursuit jusqu'a vider l'inventaire
- * du paiement (ou remplir l'inventaire du resultat). Aucune boucle ecrite a la
- * main, aucune logique de trade dupliquee : robuste par construction.
+ * <p>The merchant API is identical on 1.21.1 and 26.2 (verified against decompiled sources), so
+ * this single mixin compiles and applies on both versions and both loaders (Mojmap names).
  */
 @Mixin(MerchantMenu.class)
 public abstract class MerchantMenuMixin {
@@ -43,16 +39,15 @@ public abstract class MerchantMenuMixin {
     @Inject(method = "quickMoveStack", at = @At("HEAD"))
     private void bulktrade$refillBeforeTrade(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
         if (index != RESULT_SLOT || player.level().isClientSide()) return;
-        if (!BulkTradeConfig.ENABLED.get()) return;
+        if (!BulkTradeConfig.enabled()) return;
 
-        // getActiveOffer() n'est non-null que si les cases contiennent deja le
-        // paiement -> toujours vrai ici, car le slot resultat n'est cliquable
-        // que dans ce cas. Sinon, on ne touche a rien (comportement vanilla).
+        // getActiveOffer() is non-null only when the payment slots already hold the cost -> always
+        // true here, since the result slot is only clickable in that case. Otherwise: no-op (vanilla).
         MerchantOffer offer = this.tradeContainer.getActiveOffer();
         if (offer == null) return;
 
         this.moveFromInventoryToPaymentSlot(0, offer.getItemCostA());
         offer.getItemCostB().ifPresent(cost -> this.moveFromInventoryToPaymentSlot(1, cost));
-        this.tradeContainer.updateSellItem(); // recalcule le slot resultat
+        this.tradeContainer.updateSellItem(); // recompute the result slot
     }
 }

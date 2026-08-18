@@ -1,0 +1,40 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "${mod_license}"
+issueTrackerURL = "https://github.com/BackupBackupFede/bulk-trade/issues"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+logoFile = "icon.png"
+authors = "${mod_author}"
+credits = "Support: https://ko-fi.com/acesoverdeuces777"
+displayURL = "https://github.com/BackupBackupFede/bulk-trade"
+description = '''
+Trade your whole stock with a merchant in a single shift-click, without leaving the trade UI.
+
+Vanilla already chains trades on shift-click, but stops as soon as the 2 payment slots are empty.
+This mod refills those slots from your inventory -> one click trades your ENTIRE stock. You stay
+in the menu and pick the exact trade: no mis-trades. It respects villager restock limits, so bulk
+trading stops when the villager runs out of stock, exactly like vanilla. Server-side, no dependencies.
+
+Support: https://ko-fi.com/acesoverdeuces777
+'''
+
+[[mixins]]
+config = "${mod_id}.mixins.json"
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.2,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "[26.2,)"
+ordering = "NONE"
+side = "BOTH"
