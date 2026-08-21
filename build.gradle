@@ -1,10 +1,37 @@
+// ---------------------------------------------------------------------------
+// Version matrix — the ONE place per-Minecraft-version values live.
+// Build a version with:  ./gradlew build -Pminecraft_version=1.21.1
+// (default target is set by minecraft_version in gradle.properties)
+// ---------------------------------------------------------------------------
+def MC = rootProject.minecraft_version
+def MATRIX = [
+    "26.2"  : [neoform: "26.2-2",                 neo: "26.2.0.35-beta", loader: "0.19.3",  java: 25, obfuscated: false,
+               fabricMcDep: ">=26.2",             neoMcDep: "[26.2,)",       neoDep: "[26.2,)"],
+    "1.21.1": [neoform: "1.21.1-20240808.144430", neo: "21.1.243",       loader: "0.16.10", java: 21, obfuscated: true,
+               fabricMcDep: ">=1.21.1 <1.22",     neoMcDep: "[1.21.1,1.22)", neoDep: "[21.1.0,)"],
+]
+def V = MATRIX[MC]
+if (V == null) throw new GradleException("Unknown minecraft_version '${MC}' — add it to MATRIX in build.gradle.")
+
+rootProject.ext {
+    mcVersion     = MC
+    neoformVersion = V.neoform
+    neoVersion    = V.neo
+    loaderVersion = V.loader
+    mcObfuscated  = V.obfuscated
+    javaVersion   = V.java
+    fabricMcDep   = V.fabricMcDep
+    neoMcDep      = V.neoMcDep
+    neoDep        = V.neoDep
+}
+
 subprojects {
     apply plugin: 'java'
 
     version = rootProject.mod_version
     group = rootProject.mod_group
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(rootProject.javaVersion)
 
     repositories {
         mavenCentral()
@@ -13,14 +40,19 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
-        options.release = 25
+        options.release = rootProject.javaVersion
     }
 
-    // Expand mod metadata placeholders (${mod_id} etc.) at build time.
+    // Expand mod metadata placeholders (${mod_id}, ${mixin_compat}, version ranges) at build time.
     tasks.withType(ProcessResources).configureEach {
         // Only string-valued gradle.properties entries — never the whole property map,
         // which contains non-serializable Project objects (allprojects, parent, ...).
         def props = rootProject.properties.findAll { it.value instanceof String }
+        props['mixin_compat'] = "JAVA_${rootProject.javaVersion}".toString()
+        props['mc_version']   = rootProject.mcVersion.toString()
+        props['fabric_mc_dep'] = rootProject.fabricMcDep.toString()
+        props['neo_mc_dep']   = rootProject.neoMcDep.toString()
+        props['neo_dep']      = rootProject.neoDep.toString()
         inputs.properties(props)
         filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/neoforge.mods.toml', '*.mixins.json']) {
             expand(props)

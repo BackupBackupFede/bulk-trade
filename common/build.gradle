@@ -10,7 +10,7 @@ base {
 
 neoForge {
     // Compile the common code against un-modified (Mojang-mapped) Minecraft.
-    neoFormVersion = rootProject.neoform_version
+    neoFormVersion = rootProject.neoformVersion
 }
 
 dependencies {

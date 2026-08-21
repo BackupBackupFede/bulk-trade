@@ -5,11 +5,11 @@ plugins {
 }
 
 base {
-    archivesName = "${rootProject.mod_id}-neoforge"
+    archivesName = "${rootProject.mod_id}-neoforge-${rootProject.mcVersion}"
 }
 
 neoForge {
-    version = rootProject.neo_version
+    version = rootProject.neoVersion
 
     runs {
         client { client() }

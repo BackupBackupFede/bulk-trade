@@ -17,7 +17,7 @@
   },
   "mixins": ["${mod_id}.mixins.json"],
   "depends": {
-    "minecraft": ">=26.2",
+    "minecraft": "${fabric_mc_dep}",
     "fabricloader": ">=0.16"
   }
 }

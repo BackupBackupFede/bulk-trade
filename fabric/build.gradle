@@ -5,13 +5,21 @@ plugins {
 }
 
 base {
-    archivesName = "${rootProject.mod_id}-fabric"
+    archivesName = "${rootProject.mod_id}-fabric-${rootProject.mcVersion}"
 }
 
 dependencies {
-    // MC 26.x ships de-obfuscated (real names), so Loom needs no mappings layer here.
-    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-    implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    minecraft "com.mojang:minecraft:${rootProject.mcVersion}"
+
+    if (rootProject.mcObfuscated) {
+        // Obfuscated Minecraft (1.21.x): Loom needs a mappings layer. Use Mojang mappings so the
+        // common mixin (compiled in Mojmap) applies without a refmap.
+        mappings loom.officialMojangMappings()
+        modImplementation "net.fabricmc:fabric-loader:${rootProject.loaderVersion}"
+    } else {
+        // MC 26.x ships de-obfuscated (real names) -> no mappings layer, plain implementation.
+        implementation "net.fabricmc:fabric-loader:${rootProject.loaderVersion}"
+    }
 
     compileOnly project(':common')
 
