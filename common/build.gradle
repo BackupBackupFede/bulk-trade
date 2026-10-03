@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.142'
+    id 'net.neoforged.moddev'
 }
 
 base {
@@ -9,9 +9,14 @@ base {
 }
 
 neoForge {
-    // Compile the common code against un-modified (Mojang-mapped) Minecraft.
+    // Compile common code against un-modified (Mojang-mapped) Minecraft.
     neoFormVersion = rootProject.neoformVersion
 }
+
+// One source folder per Minecraft line, for the rare class that cannot be written once: when a
+// vanilla method changes SHAPE (a parameter added), a mixin handler has to change with it, because
+// a handler's parameters must mirror the target's exactly. Only one folder is compiled.
+sourceSets.main.java.srcDir rootProject.mcObfuscated ? 'src/main/java-legacy' : 'src/main/java-modern'
 
 dependencies {
     // Both loaders bundle Mixin + MixinExtras, so common may use them (provided, not shipped).

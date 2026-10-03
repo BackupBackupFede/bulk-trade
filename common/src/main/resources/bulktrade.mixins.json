@@ -4,8 +4,10 @@
   "package": "net.emeraude.bulktrade.mixin",
   "compatibilityLevel": "${mixin_compat}",
   "mixins": [
+    "DedicatedServerMixin",
     "MerchantMenuMixin"
   ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

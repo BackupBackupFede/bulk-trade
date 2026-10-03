@@ -1,4 +1,4 @@
-# Bulk Villager Trading — NeoForge 1.21.1
+# Bulk Villager Trading — NeoForge + Fabric, MC 1.21.1 + 26.2 + 26.3
 
 Trade your whole stock with a merchant in a single shift-click.
 
@@ -53,9 +53,8 @@ Leftover payment in the slots is returned to your inventory when the menu closes
 
 ## Loader & versions
 
-- **Loader:** NeoForge
-- **Minecraft:** 1.21.1
-- Runs on any NeoForge `21.1.x` (see `versionRange` in `neoforge.mods.toml`).
+- **Loaders:** NeoForge and Fabric (no Fabric API needed)
+- **Minecraft:** 1.21.1, 26.2 and 26.3 — one jar per loader and per version
 
 ## Support
 
