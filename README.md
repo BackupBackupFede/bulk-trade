@@ -18,9 +18,11 @@ resources to emeralds), not a missing feature.
 **It respects villager restock limits** — when a trade runs out of stock, bulk trading
 stops, exactly like vanilla. No stock bypass, no duping.
 
-Implementation: a single Mixin (`@Inject` at the HEAD of `quickMoveStack`, result slot)
-that calls the vanilla `moveFromInventoryToPaymentSlot`, then lets vanilla do the trade.
-No duplicated trade logic. Server-side, no dependencies.
+Implementation: a single Mixin wraps `quickMoveStack` for the result slot, lets vanilla
+do the trade, then calls vanilla `moveFromInventoryToPaymentSlot` before the shift-click
+loop checks the result slot again. This also handles unstackable payments (such as boats)
+and prices above half a stack, where one trade leaves too little payment for the next
+result. No duplicated trade logic. Server-side, using the loaders' bundled MixinExtras.
 
 | Config (server) | Default | Effect |
 |---|---|---|
@@ -50,6 +52,10 @@ In IntelliJ: "Open" the `bulk-trade` folder, then run the `runClient` run config
 
 Leftover payment in the slots is returned to your inventory when the menu closes
 (`MerchantMenu.removed`), so no items are lost.
+
+The automated self-test also covers multiple boats sold in one shift-click, exhausted
+offer stock, 40-emerald payments, an unstackable second payment, and a full inventory
+with no room for output.
 
 ## Loader & versions
 
