@@ -50,6 +50,11 @@ public final class BulkTradeSelfTest {
         try {
             ServerLevel level = server.overworld();
             check(failures, "merchant", merchant(server, level));
+            check(failures, "boats", boats(server, level, 100, 6));
+            check(failures, "boats-restock-limit", boats(server, level, 3, 3));
+            check(failures, "high-cost", highCost(server, level));
+            check(failures, "second-payment-boat", secondPaymentBoat(server, level));
+            check(failures, "full-inventory", fullInventory(server, level));
         } catch (Throwable t) {
             BulkTrade.LOGGER.error("[SELFTEST] crashed", t);
             failures.add("crash: " + t);
@@ -99,6 +104,88 @@ public final class BulkTradeSelfTest {
     }
 
     // --- helpers --------------------------------------------------------------------------------
+
+    /** Six unstackable boats must trade in one shift-click, unless the offer sells out first. */
+    private static String boats(MinecraftServer server, ServerLevel level, int maxUses, int expected) {
+        ServerPlayer player = player(server, level);
+        Inventory inv = player.getInventory();
+        for (int i = 9; i < 14; i++) inv.setItem(i, stack("minecraft:oak_boat", 1));
+        MerchantOffer offer = new MerchantOffer(new ItemCost(stack("minecraft:oak_boat", 1).getItem(), 1),
+                stack("minecraft:emerald", 1), maxUses, 1, 0.05F);
+        MerchantMenu menu = menu(player, offer);
+        menu.slots.get(0).set(stack("minecraft:oak_boat", 1));
+        shiftClick(menu, player, 2);
+        int emeralds = count(inv, "minecraft:emerald");
+        int boats = count(inv, "minecraft:oak_boat") + menu.slots.get(0).getItem().getCount();
+        return emeralds == expected && boats == 6 - expected && offer.getUses() == expected
+                ? null : emeralds + " emeralds / " + boats + " boats / " + offer.getUses() + " uses";
+    }
+
+    /** A stack of 64 cannot pay twice for an offer costing 40 emeralds. */
+    private static String highCost(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        Inventory inv = player.getInventory();
+        inv.setItem(9, stack("minecraft:emerald", 64));
+        inv.setItem(10, stack("minecraft:emerald", 64));
+        inv.setItem(11, stack("minecraft:emerald", 32));
+        MerchantMenu menu = menu(player, new MerchantOffer(
+                new ItemCost(stack("minecraft:emerald", 1).getItem(), 40),
+                stack("minecraft:bread", 1), 100, 1, 0.05F));
+        menu.slots.get(0).set(stack("minecraft:emerald", 40));
+        shiftClick(menu, player, 2);
+        int bread = count(inv, "minecraft:bread");
+        int emeralds = count(inv, "minecraft:emerald") + menu.slots.get(0).getItem().getCount();
+        return bread == 5 && emeralds == 0 ? null : bread + " bread / " + emeralds + " emeralds";
+    }
+
+    /** Either payment slot can be the one exhausted by a single trade. */
+    private static String secondPaymentBoat(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        Inventory inv = player.getInventory();
+        inv.setItem(9, stack("minecraft:emerald", 5));
+        for (int i = 10; i < 15; i++) inv.setItem(i, stack("minecraft:oak_boat", 1));
+        MerchantMenu menu = menu(player, new MerchantOffer(
+                new ItemCost(stack("minecraft:emerald", 1).getItem(), 1),
+                java.util.Optional.of(new ItemCost(stack("minecraft:oak_boat", 1).getItem(), 1)),
+                stack("minecraft:bread", 1), 100, 1, 0.05F));
+        menu.slots.get(0).set(stack("minecraft:emerald", 1));
+        menu.slots.get(1).set(stack("minecraft:oak_boat", 1));
+        shiftClick(menu, player, 2);
+        int bread = count(inv, "minecraft:bread");
+        int boats = count(inv, "minecraft:oak_boat") + menu.slots.get(1).getItem().getCount();
+        int emeralds = count(inv, "minecraft:emerald") + menu.slots.get(0).getItem().getCount();
+        return bread == 6 && boats == 0 && emeralds == 0
+                ? null : bread + " bread / " + boats + " boats / " + emeralds + " emeralds";
+    }
+
+    /** No output space must leave both the payment and the offer's stock unchanged. */
+    private static String fullInventory(MinecraftServer server, ServerLevel level) {
+        ServerPlayer player = player(server, level);
+        Inventory inv = player.getInventory();
+        for (int i = 0; i < 36; i++) inv.setItem(i, stack("minecraft:stone", 64));
+        MerchantOffer offer = new MerchantOffer(new ItemCost(stack("minecraft:oak_boat", 1).getItem(), 1),
+                stack("minecraft:emerald", 1), 100, 1, 0.05F);
+        MerchantMenu menu = menu(player, offer);
+        menu.slots.get(0).set(stack("minecraft:oak_boat", 1));
+        shiftClick(menu, player, 2);
+        return menu.slots.get(0).getItem().getCount() == 1 && offer.getUses() == 0
+                && count(inv, "minecraft:emerald") == 0 ? null : "payment or stock changed without output space";
+    }
+
+    private static MerchantMenu menu(ServerPlayer player, MerchantOffer offer) {
+        ClientSideMerchant merchant = new ClientSideMerchant(player) {
+            @Override
+            public boolean isClientSide() {
+                return true;
+            }
+        };
+        MerchantOffers offers = new MerchantOffers();
+        offers.add(offer);
+        merchant.overrideOffers(offers);
+        MerchantMenu menu = new MerchantMenu(1, player.getInventory(), merchant);
+        menu.setSelectionHint(0);
+        return menu;
+    }
 
     /** What AbstractContainerMenu.doClick does for a QUICK_MOVE on a slot. */
     private static void shiftClick(AbstractContainerMenu menu, ServerPlayer player, int slot) {
